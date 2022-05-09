@@ -1,23 +1,23 @@
 $TTL    604800
-@       IN      SOA     ocp-svc.ocp.lan. contact.ocp.lan (
+@       IN      SOA     ocp-svc.ocp.nsth.demo. contact.ocp.nsth.demo (
                   1     ; Serial
              604800     ; Refresh
               86400     ; Retry
-            2419200     ; Expire
+            24192     ; Expire
              604800     ; Minimum
 )
 
-  IN      NS      ocp-svc.ocp.lan.
+  IN      NS      ocp-svc.ocp.nsth.demo.
 
-1      IN    PTR    ocp-svc.ocp.lan.
-1      IN    PTR    api.lab.ocp.lan.
-1      IN    PTR    api-int.lab.ocp.lan.
+1      IN    PTR    ocp-svc.ocp.nsth.demo.
+1      IN    PTR    api.lab.ocp.nsth.demo.
+1      IN    PTR    api-int.lab.ocp.nsth.demo.
 ;
-200    IN    PTR    ocp-bootstrap.lab.ocp.lan.
+2    IN    PTR    ocp-bootstrap.lab.ocp.nsth.demo.
 ;
-201    IN    PTR    ocp-cp-1.lab.ocp.lan.
-202    IN    PTR    ocp-cp-2.lab.ocp.lan.
-203    IN    PTR    ocp-cp-3.lab.ocp.lan.
+11    IN    PTR    ocp-cp-1.lab.ocp.nsth.demo.
+12    IN    PTR    ocp-cp-2.lab.ocp.nsth.demo.
+13    IN    PTR    ocp-cp-3.lab.ocp.nsth.demo.
 ;
-211    IN    PTR    ocp-w-1.lab.ocp.lan.
-212    IN    PTR    ocp-w-2.lab.ocp.lan.
+21    IN    PTR    ocp-w-1.lab.ocp.nsth.demo.
+22    IN    PTR    ocp-w-2.lab.ocp.nsth.demo.

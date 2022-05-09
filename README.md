@@ -40,39 +40,19 @@
 
 > VMware ESXi used in this guide
 
+
+
 1. Copy the CentOS 8 iso to an ESXi datastore
 1. Create a new Port Group called 'OCP' under Networking
-    - (In case of VirtualBox choose "Internal Network" when creating each VM and give it the same name. ocp for instance)
-    - (In case of ProxMox you may use the same network bridge and choose a specific VLAN tag. 50 for instance) 
-1. Create 3 Control Plane virtual machines with minimum settings:
-   - Name: ocp-cp-# (Example ocp-cp-1)
-   - 4vcpu
-   - 8GB RAM
-   - 50GB HDD
-   - NIC connected to the OCP network
-   - Load the rhcos-X.X.X-x86_64-installer.x86_64.iso image into the CD/DVD drive
-1. Create 2 Worker virtual machines (or more if you want) with minimum settings:
-   - Name: ocp-w-# (Example ocp-w-1)
-   - 4vcpu
-   - 8GB RAM
-   - 50GB HDD
-   - NIC connected to the OCP network
-   - Load the rhcos-X.X.X-x86_64-installer.x86_64.iso image into the CD/DVD drive
-1. Create a Bootstrap virtual machine (this vm will be deleted once installation completes) with minimum settings:
-   - Name: ocp-boostrap
-   - 4vcpu
-   - 8GB RAM
-   - 50GB HDD
-   - NIC connected to the OCP network
-   - Load the rhcos-X.X.X-x86_64-installer.x86_64.iso image into the CD/DVD drive
-1. Create a Services virtual machine with minimum settings:
-   - Name: ocp-svc
-   - 4vcpu
-   - 4GB RAM
-   - 120GB HDD
-   - NIC1 connected to the VM Network (LAN)
-   - NIC2 connected to the OCP network
-   - Load the CentOS_8.iso image into the CD/DVD drive
+
+### OCP VMs
+| VM | CPU | Memory | Disk | Image | NICs |
+| ------ | ------ | ------ | ------ | ------ | ------ |
+| ocp-svc-# | 4 | 8GB | 200GB | centos_8.iso | 2 NIC - Attach to Internal network and OCP Port Group |
+| ocp-cp-# | 4 | 8GB | 200GB | rhcos-X.X.X-x86_64-installer.x86_64.iso | 1 NIC - Attach to OCP Port Group |
+| ocp-w-# | 4 | 8GB | 200GB | rhcos-X.X.X-x86_64-installer.x86_64.iso | 1 NIC - Attach to OCP Port Group |
+| ocp-bootstrap-# | 8 | 16GB | 200GB | rhcos-X.X.X-x86_64-installer.x86_64.iso | 1 NIC - Attach to OCP Port Group |
+
 1. Boot all virtual machines so they each are assigned a MAC address
 1. Shut down all virtual machines except for 'ocp-svc'
 1. Use the VMware ESXi dashboard to record the MAC address of each vm, these will be used later to set static IPs
@@ -83,7 +63,7 @@
 
    - Remove the home dir partition and assign all free storage to '/'
    - Optionally you can install the 'Guest Tools' package to have monitoring and reporting in the VMware ESXi dashboard
-   - Enable the LAN NIC only to obtain a DHCP address from the LAN network and make note of the IP address (ocp-svc_IP_address) assigned to the vm
+   - Enable the nsth.demo NIC only to obtain a DHCP address from the nsth.demo network and make note of the IP address (ocp-svc_IP_address) assigned to the vm
 
 1. Boot the ocp-svc VM
 
@@ -153,22 +133,22 @@
    export KUBE_EDITOR="vim"
    ```
 
-1. Set a Static IP for OCP network interface `nmtui-edit ens224` or edit `/etc/sysconfig/network-scripts/ifcfg-ens224`
+1. Set a Static IP for OCP network interface `nmtui-edit ens444` or edit `/etc/sysconfig/network-scripts/ifcfg-ens444`
 
-   - **Address**: 192.168.22.1
+   - **Address**: 192.168.44.1
    - **DNS Server**: 127.0.0.1
-   - **Search domain**: ocp.lan
+   - **Search domain**: ocp.nsth.demo
    - Never use this network for default route
    - Automatically connect
 
-   > If changes arent applied automatically you can bounce the NIC with `nmcli connection down ens224` and `nmcli connection up ens224`
+   > If changes arent applied automatically you can bounce the NIC with `nmcli connection down ens444` and `nmcli connection up ens444`
 
 1. Setup firewalld
 
    Create **internal** and **external** zones
 
    ```bash
-   nmcli connection modify ens224 connection.zone internal
+   nmcli connection modify ens444 connection.zone internal
    nmcli connection modify ens192 connection.zone external
    ```
 
@@ -238,9 +218,9 @@
    systemctl status named
    ```
 
-   > At the moment DNS will still be pointing to the LAN DNS server. You can see this by testing with `dig ocp.lan`.
+   > At the moment DNS will still be pointing to the nsth.demo DNS server. You can see this by testing with `dig ocp.nsth.demo`.
 
-   Change the LAN nic (ens192) to use 127.0.0.1 for DNS AND ensure `Ignore automatically Obtained DNS parameters` is ticked
+   Change the nsth.demo nic (ens192) to use 127.0.0.1 for DNS AND ensure `Ignore automatically Obtained DNS parameters` is ticked
 
    ```bash
    nmtui-edit ens192
@@ -255,9 +235,9 @@
    Confirm dig now sees the correct DNS results by using the DNS Server running locally
 
    ```bash
-   dig ocp.lan
-   # The following should return the answer ocp-bootstrap.lab.ocp.lan from the local server
-   dig -x 192.168.22.200
+   dig ocp.nsth.demo
+   # The following should return the answer ocp-bootstrap.lab.ocp.nsth.demo from the local server
+   dig -x 192.168.44.2
    ```
 
 1. Install & configure DHCP
@@ -343,9 +323,9 @@
    > Note: Opening port 9000 in the external zone allows access to HAProxy stats that are useful for monitoring and troubleshooting. The UI can be accessed at: `http://{ocp-svc_IP_address}:9000/stats`
 
    ```bash
-   firewall-cmd --add-port=6443/tcp --zone=internal --permanent # kube-api-server on control plane nodes
-   firewall-cmd --add-port=6443/tcp --zone=external --permanent # kube-api-server on control plane nodes
-   firewall-cmd --add-port=22623/tcp --zone=internal --permanent # machine-config server
+   firewall-cmd --add-port=6443/tcp --zone=internal --permanent # kube-api-server on control pnsth.demoe nodes
+   firewall-cmd --add-port=6443/tcp --zone=external --permanent # kube-api-server on control pnsth.demoe nodes
+   firewall-cmd --add-port=44623/tcp --zone=internal --permanent # machine-config server
    firewall-cmd --add-service=http --zone=internal --permanent # web services hosted on worker nodes
    firewall-cmd --add-service=http --zone=external --permanent # web services hosted on worker nodes
    firewall-cmd --add-service=https --zone=internal --permanent # web services hosted on worker nodes
@@ -384,7 +364,7 @@
    Export the Share
 
    ```bash
-   echo "/shares/registry  192.168.22.0/24(rw,sync,root_squash,no_subtree_check,no_wdelay)" > /etc/exports
+   echo "/shares/registry  192.168.44.0/24(rw,sync,root_squash,no_subtree_check,no_wdelay)" > /etc/exports
    exportfs -rv
    ```
 
@@ -439,7 +419,7 @@
    ~/openshift-install create manifests --dir ~/ocp-install
    ```
 
-   > A warning is shown about making the control plane nodes schedulable. It is up to you if you want to run workloads on the Control Plane nodes. If you dont want to you can disable this with:
+   > A warning is shown about making the control pnsth.demoe nodes schedulable. It is up to you if you want to run workloads on the Control Pnsth.demoe nodes. If you dont want to you can disable this with:
    > `sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' ~/ocp-install/manifests/cluster-scheduler-02-config.yml`.
    > Make any other custom changes you like to the core Kubernetes manifest files.
 
@@ -487,28 +467,28 @@
 
    ```bash
    # Bootstrap Node - ocp-bootstrap
-   coreos.inst.install_dev=sda coreos.inst.image_url=http://192.168.22.1:8080/ocp4/rhcos coreos.inst.insecure=yes coreos.inst.ignition_url=http://192.168.22.1:8080/ocp4/bootstrap.ign
+   coreos.inst.install_dev=sda coreos.inst.image_url=http://192.168.44.1:8080/ocp4/rhcos coreos.inst.insecure=yes coreos.inst.ignition_url=http://192.168.44.1:8080/ocp4/bootstrap.ign
    
    # Or if you waited for it boot, use the following command then just reboot after it finishes and make sure you remove the attached .iso
-   sudo coreos-installer install /dev/sda -u http://192.168.22.1:8080/ocp4/rhcos -I http://192.168.22.1:8080/ocp4/bootstrap.ign --insecure --insecure-ignition
+   sudo coreos-installer install /dev/sda -u http://192.168.44.1:8080/ocp4/rhcos -I http://192.168.44.1:8080/ocp4/bootstrap.ign --insecure --insecure-ignition
    ```
 
    ```bash
-   # Each of the Control Plane Nodes - ocp-cp-\#
-   coreos.inst.install_dev=sda coreos.inst.image_url=http://192.168.22.1:8080/ocp4/rhcos coreos.inst.insecure=yes coreos.inst.ignition_url=http://192.168.22.1:8080/ocp4/master.ign
+   # Each of the Control Pnsth.demoe Nodes - ocp-cp-\#
+   coreos.inst.install_dev=sda coreos.inst.image_url=http://192.168.44.1:8080/ocp4/rhcos coreos.inst.insecure=yes coreos.inst.ignition_url=http://192.168.44.1:8080/ocp4/master.ign
    
    # Or if you waited for it boot, use the following command then just reboot after it finishes and make sure you remove the attached .iso
-   sudo coreos-installer install /dev/sda -u http://192.168.22.1:8080/ocp4/rhcos -I http://192.168.22.1:8080/ocp4/master.ign --insecure --insecure-ignition
+   sudo coreos-installer install /dev/sda -u http://192.168.44.1:8080/ocp4/rhcos -I http://192.168.44.1:8080/ocp4/master.ign --insecure --insecure-ignition
    ```
 
 1. Power on the ocp-w-\# hosts and select 'Tab' to enter boot configuration. Enter the following configuration:
 
    ```bash
    # Each of the Worker Nodes - ocp-w-\#
-   coreos.inst.install_dev=sda coreos.inst.image_url=http://192.168.22.1:8080/ocp4/rhcos coreos.inst.insecure=yes coreos.inst.ignition_url=http://192.168.22.1:8080/ocp4/worker.ign
+   coreos.inst.install_dev=sda coreos.inst.image_url=http://192.168.44.1:8080/ocp4/rhcos coreos.inst.insecure=yes coreos.inst.ignition_url=http://192.168.44.1:8080/ocp4/worker.ign
    
    # Or if you waited for it boot, use the following command then just reboot after it finishes and make sure you remove the attached .iso
-   sudo coreos-installer install /dev/sda -u http://192.168.22.1:8080/ocp4/rhcos -I http://192.168.22.1:8080/ocp4/worker.ign --insecure --insecure-ignition
+   sudo coreos-installer install /dev/sda -u http://192.168.44.1:8080/ocp4/rhcos -I http://192.168.44.1:8080/ocp4/worker.ign --insecure --insecure-ignition
    ```
 
 ## Monitor the Bootstrap Process
@@ -595,7 +575,7 @@
    ```yaml
    storage:
      pvc:
-       claim: # leave the claim blank
+       claim: # leave the claim bnsth.demok
    ```
 
 1. Confirm the 'image-registry-storage' pvc has been created and is currently in a 'Pending' state
@@ -643,17 +623,17 @@
 1. Append the following to your local workstations `/etc/hosts` file:
 
    > From your local workstation
-   > If you do not want to add an entry for each new service made available on OpenShift you can configure the ocp-svc DNS server to serve externally and create a wildcard entry for \*.apps.lab.ocp.lan
+   > If you do not want to add an entry for each new service made available on OpenShift you can configure the ocp-svc DNS server to serve externally and create a wildcard entry for \*.apps.lab.ocp.nsth.demo
 
    ```bash
    # Open the hosts file
    sudo vi /etc/hosts
 
    # Append the following entries:
-   192.168.0.96 ocp-svc api.lab.ocp.lan console-openshift-console.apps.lab.ocp.lan oauth-openshift.apps.lab.ocp.lan downloads-openshift-console.apps.lab.ocp.lan alertmanager-main-openshift-monitoring.apps.lab.ocp.lan grafana-openshift-monitoring.apps.lab.ocp.lan prometheus-k8s-openshift-monitoring.apps.lab.ocp.lan thanos-querier-openshift-monitoring.apps.lab.ocp.lan
+   192.168.0.96 ocp-svc api.lab.ocp.nsth.demo console-openshift-console.apps.lab.ocp.nsth.demo oauth-openshift.apps.lab.ocp.nsth.demo downloads-openshift-console.apps.lab.ocp.nsth.demo alertmanager-main-openshift-monitoring.apps.lab.ocp.nsth.demo grafana-openshift-monitoring.apps.lab.ocp.nsth.demo prometheus-k8s-openshift-monitoring.apps.lab.ocp.nsth.demo thanos-querier-openshift-monitoring.apps.lab.ocp.nsth.demo
    ```
 
-1. Navigate to the [OpenShift Console URL](https://console-openshift-console.apps.lab.ocp.lan) and log in as the 'admin' user
+1. Navigate to the [OpenShift Console URL](https://console-openshift-console.apps.lab.ocp.nsth.demo) and log in as the 'admin' user
 
    > You will get self signed certificate warnings that you can ignore
    > If you need to login as kubeadmin and need to the password again you can retrieve it with: `cat ~/ocp-install/auth/kubeadmin-password`
@@ -663,16 +643,16 @@
 1. You can collect logs from all cluster hosts by running the following command from the 'ocp-svc' host:
 
    ```bash
-   ./openshift-install gather bootstrap --dir ocp-install --bootstrap=192.168.22.200 --master=192.168.22.201 --master=192.168.22.202 --master=192.168.22.203
+   ./openshift-install gather bootstrap --dir ocp-install --bootstrap=192.168.44.2 --master=192.168.44.11 --master=192.168.44.12 --master=192.168.44.13
    ```
 
-1. Modify the role of the Control Plane Nodes
+1. Modify the role of the Control Pnsth.demoe Nodes
 
-   If you would like to schedule workloads on the Control Plane nodes apply the 'worker' role by changing the value of 'mastersSchedulable' to true.
+   If you would like to schedule workloads on the Control Pnsth.demoe nodes apply the 'worker' role by changing the value of 'mastersSchedulable' to true.
 
-   If you do not want to schedule workloads on the Control Plane nodes remove the 'worker' role by changing the value of 'mastersSchedulable' to false.
+   If you do not want to schedule workloads on the Control Pnsth.demoe nodes remove the 'worker' role by changing the value of 'mastersSchedulable' to false.
 
-   > Remember depending on where you host your workloads you will have to update HAProxy to include or exclude the control plane nodes from the ingress backends.
+   > Remember depending on where you host your workloads you will have to update HAProxy to include or exclude the control pnsth.demoe nodes from the ingress backends.
 
    ```bash
    oc edit schedulers.config.openshift.io cluster

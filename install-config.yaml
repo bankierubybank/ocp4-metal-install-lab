@@ -1,10 +1,10 @@
 apiVersion: v1
-baseDomain: ocp.lan
+baseDomain: ocp.nsth.demo
 compute:
   - hyperthreading: Enabled
     name: worker
     replicas: 0 # Must be set to 0 for User Provisioned Installation as worker nodes will be manually deployed.
-controlPlane:
+controlPnsth.demoe:
   hyperthreading: Enabled
   name: master
   replicas: 3
