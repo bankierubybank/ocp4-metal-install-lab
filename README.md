@@ -1,28 +1,13 @@
 # OpenShift 4 Bare Metal Install - User Provisioned Infrastructure (UPI)
 
-- [OpenShift 4 Bare Metal Install - User Provisioned Infrastructure (UPI)](#openshift-4-bare-metal-install---user-provisioned-infrastructure-upi)
-  - [Architecture Diagram](#architecture-diagram)
-  - [Download Software](#download-software)
-  - [Prepare the 'Bare Metal' environment](#prepare-the-bare-metal-environment)
-  - [Configure Environmental Services](#configure-environmental-services)
-  - [Generate and host install files](#generate-and-host-install-files)
-  - [Deploy OpenShift](#deploy-openshift)
-  - [Monitor the Bootstrap Process](#monitor-the-bootstrap-process)
-  - [Remove the Bootstrap Node](#remove-the-bootstrap-node)
-  - [Wait for installation to complete](#wait-for-installation-to-complete)
-  - [Join Worker Nodes](#join-worker-nodes)
-  - [Configure storage for the Image Registry](#configure-storage-for-the-image-registry)
-  - [Create the first Admin user](#create-the-first-admin-user)
-  - [Access the OpenShift Console](#access-the-openshift-console)
-  - [Troubleshooting](#troubleshooting)
-
 ## Architecture Diagram
 
 ![Architecture Diagram](./diagram/Architecture.png)
 
 ## Download Software
 
-1. Download [CentOS 8 x86_64 image](https://www.centos.org/centos-linux/)
+1. Download [CentOS 8 Stream](https://mirrors.bangmod.cloud/centos/8-stream/isos/x86_64/)
+   Other Mirror [CentOS Mirror](https://www.centos.org/download/mirrors/)
 1. Login to [RedHat OpenShift Cluster Manager](https://cloud.redhat.com/openshift)
 1. Select 'Create Cluster' from the 'Clusters' navigation menu
 1. Select 'RedHat OpenShift Container Platform'
@@ -36,26 +21,20 @@
      - rhcos-X.X.X-x86_64-metal.x86_64.raw.gz
      - rhcos-X.X.X-x86_64-installer.x86_64.iso (or rhcos-X.X.X-x86_64-live.x86_64.iso for newer versions)
 
+1. Or from here [RHOCP Installer & Client](https://mirror.openshift.com/pub/openshift-v4/clients/ocp/) [RHCOS](https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/)
+
 ## Prepare the 'Bare Metal' environment
 
-> VMware ESXi used in this guide
-
-
-
-1. Copy the CentOS 8 iso to an ESXi datastore
+1. Copy the CentOS 8 Stream iso to an ESXi datastore
 1. Create a new Port Group called 'OCP' under Networking
 
 ### OCP VMs
 | VM | CPU | Memory | Disk | Image | NICs |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| ocp-svc-# | 4 | 8GB | 200GB | centos_8.iso | 2 NIC - Attach to Internal network and OCP Port Group |
+| ocp-svc | 4 | 8GB | 200GB | centos_8.iso | 2 NIC - Attach to Internal network and OCP Port Group |
 | ocp-cp-# | 4 | 8GB | 200GB | rhcos-X.X.X-x86_64-installer.x86_64.iso | 1 NIC - Attach to OCP Port Group |
 | ocp-w-# | 4 | 8GB | 200GB | rhcos-X.X.X-x86_64-installer.x86_64.iso | 1 NIC - Attach to OCP Port Group |
 | ocp-bootstrap-# | 8 | 16GB | 200GB | rhcos-X.X.X-x86_64-installer.x86_64.iso | 1 NIC - Attach to OCP Port Group |
-
-1. Boot all virtual machines so they each are assigned a MAC address
-1. Shut down all virtual machines except for 'ocp-svc'
-1. Use the VMware ESXi dashboard to record the MAC address of each vm, these will be used later to set static IPs
 
 ## Configure Environmental Services
 
@@ -93,28 +72,23 @@
    oc version
    ```
 
+1. Update CentOS and install required dependencies
+
+   ```bash
+   dnf update
+   dnf install -y git bind bind-utils dhcp-server httpd haproxy nfs-utils
+   ```
+
 1. Extract the OpenShift Installer
 
    ```bash
    tar xvf openshift-install-linux.tar.gz
    ```
 
-1. Update CentOS so we get the latest packages for each of the services we are about to install
+1. Download [config files](https://github.com/bankierubybank/ocp4-metal-install-lab) for each of the services
 
    ```bash
-   dnf update
-   ```
-
-1. Install Git
-
-   ```bash
-   dnf install git -y
-   ```
-
-1. Download [config files](https://github.com/ryanhay/ocp4-metal-install) for each of the services
-
-   ```bash
-   git clone https://github.com/ryanhay/ocp4-metal-install
+   git clone https://github.com/bankierubybank/ocp4-metal-install-lab
    ```
 
 1. OPTIONAL: Create a file '~/.vimrc' and paste the following (this helps with editing in vim, particularly yaml files):
@@ -133,7 +107,7 @@
    export KUBE_EDITOR="vim"
    ```
 
-1. Set a Static IP for OCP network interface `nmtui-edit ens444` or edit `/etc/sysconfig/network-scripts/ifcfg-ens444`
+1. Set a Static IP for OCP network interface `nmtui-edit ens224` or edit `/etc/sysconfig/network-scripts/ifcfg-ens444`
 
    - **Address**: 192.168.44.1
    - **DNS Server**: 127.0.0.1
@@ -141,7 +115,7 @@
    - Never use this network for default route
    - Automatically connect
 
-   > If changes arent applied automatically you can bounce the NIC with `nmcli connection down ens444` and `nmcli connection up ens444`
+   > If changes arent applied automatically you can bounce the NIC with `nmcli connection down ens444` and `nmcli connection up ens224`
 
 1. Setup firewalld
 
@@ -186,13 +160,7 @@
    cat /proc/sys/net/ipv4/ip_forward
    ```
 
-1. Install and configure BIND DNS
-
-   Install
-
-   ```bash
-   dnf install bind bind-utils -y
-   ```
+1. Configure BIND DNS
 
    Apply configuration
 
@@ -240,9 +208,7 @@
    dig -x 192.168.44.2
    ```
 
-1. Install & configure DHCP
-
-   Install the DHCP Server
+1. Configure DHCP
 
    ```bash
    dnf install dhcp-server -y
@@ -269,13 +235,7 @@
    systemctl status dhcpd
    ```
 
-1. Install & configure Apache Web Server
-
-   Install Apache
-
-   ```bash
-   dnf install httpd -y
-   ```
+1. Configure Apache Web Server
 
    Change default listen port to 8080 in httpd.conf
 
@@ -304,13 +264,7 @@
    curl localhost:8080
    ```
 
-1. Install & configure HAProxy
-
-   Install HAProxy
-
-   ```bash
-   dnf install haproxy -y
-   ```
+1. Configure HAProxy
 
    Copy HAProxy config
 
@@ -343,13 +297,7 @@
    systemctl status haproxy
    ```
 
-1. Install and configure NFS for the OpenShift Registry. It is a requirement to provide storage for the Registry, emptyDir can be specified if necessary.
-
-   Install NFS Server
-
-   ```bash
-   dnf install nfs-utils -y
-   ```
+1. Configure NFS for the OpenShift Registry. It is a requirement to provide storage for the Registry, emptyDir can be specified if necessary.
 
    Create the Share
 
@@ -364,7 +312,7 @@
    Export the Share
 
    ```bash
-   echo "/shares/registry  192.168.44.0/24(rw,sync,root_squash,no_subtree_check,no_wdelay)" > /etc/exports
+   echo "/shares/registry 192.168.44.0/24(rw,sync,root_squash,no_subtree_check,no_wdelay)" > /etc/exports
    exportfs -rv
    ```
 
@@ -468,17 +416,11 @@
    ```bash
    # Bootstrap Node - ocp-bootstrap
    coreos.inst.install_dev=sda coreos.inst.image_url=http://192.168.44.1:8080/ocp4/rhcos coreos.inst.insecure=yes coreos.inst.ignition_url=http://192.168.44.1:8080/ocp4/bootstrap.ign
-   
-   # Or if you waited for it boot, use the following command then just reboot after it finishes and make sure you remove the attached .iso
-   sudo coreos-installer install /dev/sda -u http://192.168.44.1:8080/ocp4/rhcos -I http://192.168.44.1:8080/ocp4/bootstrap.ign --insecure --insecure-ignition
    ```
 
    ```bash
    # Each of the Control Pnsth.demoe Nodes - ocp-cp-\#
    coreos.inst.install_dev=sda coreos.inst.image_url=http://192.168.44.1:8080/ocp4/rhcos coreos.inst.insecure=yes coreos.inst.ignition_url=http://192.168.44.1:8080/ocp4/master.ign
-   
-   # Or if you waited for it boot, use the following command then just reboot after it finishes and make sure you remove the attached .iso
-   sudo coreos-installer install /dev/sda -u http://192.168.44.1:8080/ocp4/rhcos -I http://192.168.44.1:8080/ocp4/master.ign --insecure --insecure-ignition
    ```
 
 1. Power on the ocp-w-\# hosts and select 'Tab' to enter boot configuration. Enter the following configuration:
@@ -486,9 +428,6 @@
    ```bash
    # Each of the Worker Nodes - ocp-w-\#
    coreos.inst.install_dev=sda coreos.inst.image_url=http://192.168.44.1:8080/ocp4/rhcos coreos.inst.insecure=yes coreos.inst.ignition_url=http://192.168.44.1:8080/ocp4/worker.ign
-   
-   # Or if you waited for it boot, use the following command then just reboot after it finishes and make sure you remove the attached .iso
-   sudo coreos-installer install /dev/sda -u http://192.168.44.1:8080/ocp4/rhcos -I http://192.168.44.1:8080/ocp4/worker.ign --insecure --insecure-ignition
    ```
 
 ## Monitor the Bootstrap Process
