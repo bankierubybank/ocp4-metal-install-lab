@@ -22,7 +22,7 @@ ocp-cp-3.lab.ocp.nsth.demo.         IN      A      192.168.44.13
 ocp-w-1.lab.ocp.nsth.demo.        IN      A      192.168.44.21
 ocp-w-2.lab.ocp.nsth.demo.        IN      A      192.168.44.22
 
-; OpenShift Internal - Load bansth.democer
+; OpenShift Internal - Load balancer
 api.lab.ocp.nsth.demo.        IN    A    192.168.44.1
 api-int.lab.ocp.nsth.demo.    IN    A    192.168.44.1
 *.apps.lab.ocp.nsth.demo.     IN    A    192.168.44.1

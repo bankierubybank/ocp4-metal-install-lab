@@ -34,7 +34,7 @@
 | ocp-svc | 4 | 8GB | 200GB | centos_8.iso | 2 NIC - Attach to Internal network and OCP Port Group |
 | ocp-cp-# | 4 | 8GB | 200GB | rhcos-X.X.X-x86_64-installer.x86_64.iso | 1 NIC - Attach to OCP Port Group |
 | ocp-w-# | 4 | 8GB | 200GB | rhcos-X.X.X-x86_64-installer.x86_64.iso | 1 NIC - Attach to OCP Port Group |
-| ocp-bootstrap-# | 8 | 16GB | 200GB | rhcos-X.X.X-x86_64-installer.x86_64.iso | 1 NIC - Attach to OCP Port Group |
+| ocp-bootstrap | 8 | 16GB | 200GB | rhcos-X.X.X-x86_64-installer.x86_64.iso | 1 NIC - Attach to OCP Port Group |
 
 ## Configure Environmental Services
 
@@ -85,10 +85,10 @@
    tar xvf openshift-install-linux.tar.gz
    ```
 
-1. Download [config files](https://github.com/bankierubybank/ocp4-metal-install-lab) for each of the services
+1. Download [config files](https://github.com/bankierubybank/ocp4-metal-install-lab-lab) for each of the services
 
    ```bash
-   git clone https://github.com/bankierubybank/ocp4-metal-install-lab
+   git clone https://github.com/bankierubybank/ocp4-metal-install-lab-lab
    ```
 
 1. OPTIONAL: Create a file '~/.vimrc' and paste the following (this helps with editing in vim, particularly yaml files):
@@ -115,16 +115,18 @@
    - Never use this network for default route
    - Automatically connect
 
-   > If changes arent applied automatically you can bounce the NIC with `nmcli connection down ens444` and `nmcli connection up ens224`
+   > If changes arent applied automatically you can bounce the NIC with `nmcli connection down ens224` and `nmcli connection up ens224`
 
 1. Setup firewalld
 
    Create **internal** and **external** zones
 
    ```bash
-   nmcli connection modify ens444 connection.zone internal
-   nmcli connection modify ens192 connection.zone external
+   firewall-cmd --zone=external --change-interface=ens192
+   firewall-cmd --zone=internal --change-interface=ens224
    ```
+
+   Ref: [firewall-cmd](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/security_guide/sec-working_with_zones)
 
    View zones:
 
@@ -165,8 +167,8 @@
    Apply configuration
 
    ```bash
-   \cp ~/ocp4-metal-install/dns/named.conf /etc/named.conf
-   cp -R ~/ocp4-metal-install/dns/zones /etc/named/
+   cp ~/ocp4-metal-install-lab/dns/named.conf /etc/named.conf
+   cp -R ~/ocp4-metal-install-lab/dns/zones /etc/named/
    ```
 
    Configure the firewall for DNS
@@ -185,8 +187,6 @@
    systemctl start named
    systemctl status named
    ```
-
-   > At the moment DNS will still be pointing to the nsth.demo DNS server. You can see this by testing with `dig ocp.nsth.demo`.
 
    Change the nsth.demo nic (ens192) to use 127.0.0.1 for DNS AND ensure `Ignore automatically Obtained DNS parameters` is ticked
 
@@ -217,7 +217,7 @@
    Edit dhcpd.conf from the cloned git repo to have the correct mac address for each host and copy the conf file to the correct location for the DHCP service to use
 
    ```bash
-   \cp ~/ocp4-metal-install/dhcpd.conf /etc/dhcp/dhcpd.conf
+   cp ~/ocp4-metal-install-lab/dhcpd.conf /etc/dhcp/dhcpd.conf
    ```
 
    Configure the Firewall
@@ -269,7 +269,7 @@
    Copy HAProxy config
 
    ```bash
-   \cp ~/ocp4-metal-install/haproxy.cfg /etc/haproxy/haproxy.cfg
+   cp ~/ocp4-metal-install-lab/haproxy.cfg /etc/haproxy/haproxy.cfg
    ```
 
    Configure the Firewall
@@ -277,9 +277,9 @@
    > Note: Opening port 9000 in the external zone allows access to HAProxy stats that are useful for monitoring and troubleshooting. The UI can be accessed at: `http://{ocp-svc_IP_address}:9000/stats`
 
    ```bash
-   firewall-cmd --add-port=6443/tcp --zone=internal --permanent # kube-api-server on control pnsth.demoe nodes
-   firewall-cmd --add-port=6443/tcp --zone=external --permanent # kube-api-server on control pnsth.demoe nodes
-   firewall-cmd --add-port=44623/tcp --zone=internal --permanent # machine-config server
+   firewall-cmd --add-port=6443/tcp --zone=internal --permanent # kube-api-server on control pane nodes
+   firewall-cmd --add-port=6443/tcp --zone=external --permanent # kube-api-server on control pane nodes
+   firewall-cmd --add-port=22623/tcp --zone=internal --permanent # machine-config server
    firewall-cmd --add-service=http --zone=internal --permanent # web services hosted on worker nodes
    firewall-cmd --add-service=http --zone=external --permanent # web services hosted on worker nodes
    firewall-cmd --add-service=https --zone=internal --permanent # web services hosted on worker nodes
@@ -349,7 +349,7 @@
 1. Copy the install-config.yaml included in the clones repository to the install directory
 
    ```bash
-   cp ~/ocp4-metal-install/install-config.yaml ~/ocp-install
+   cp ~/ocp4-metal-install-lab/install-config.yaml ~/ocp-install
    ```
 
 1. Update the install-config.yaml with your own pull-secret and ssh key.
@@ -419,7 +419,7 @@
    ```
 
    ```bash
-   # Each of the Control Pnsth.demoe Nodes - ocp-cp-\#
+   # Each of the Control Pane Nodes - ocp-cp-\#
    coreos.inst.install_dev=sda coreos.inst.image_url=http://192.168.44.1:8080/ocp4/rhcos coreos.inst.insecure=yes coreos.inst.ignition_url=http://192.168.44.1:8080/ocp4/master.ign
    ```
 
@@ -526,7 +526,7 @@
 1. Create the persistent volume for the 'image-registry-storage' pvc to bind to
 
    ```bash
-   oc create -f ~/ocp4-metal-install/manifest/registry-pv.yaml
+   oc create -f ~/ocp4-metal-install-lab/manifest/registry-pv.yaml
    ```
 
 1. After a short wait the 'image-registry-storage' pvc should now be bound
@@ -539,10 +539,10 @@
 
 1. Apply the `oauth-htpasswd.yaml` file to the cluster
 
-   > This will create a user 'admin' with the password 'password'. To set a different username and password substitue the htpasswd key in the '~/ocp4-metal-install/manifest/oauth-htpasswd.yaml' file with the output of `htpasswd -n -B -b <username> <password>`
+   > This will create a user 'admin' with the password 'password'. To set a different username and password substitue the htpasswd key in the '~/ocp4-metal-install-lab/manifest/oauth-htpasswd.yaml' file with the output of `htpasswd -n -B -b <username> <password>`
 
    ```bash
-   oc apply -f ~/ocp4-metal-install/manifest/oauth-htpasswd.yaml
+   oc apply -f ~/ocp4-metal-install-lab/manifest/oauth-htpasswd.yaml
    ```
 
 1. Assign the new user (admin) admin permissions
