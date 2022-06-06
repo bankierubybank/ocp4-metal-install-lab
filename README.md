@@ -367,7 +367,7 @@
    ~/openshift-install create manifests --dir ~/ocp-install
    ```
 
-   > A warning is shown about making the control pnsth.demoe nodes schedulable. It is up to you if you want to run workloads on the Control Pnsth.demoe nodes. If you dont want to you can disable this with:
+   > A warning is shown about making the Control Pane nodes schedulable. It is up to you if you want to run workloads on the Control Pane nodes. If you dont want to you can disable this with:
    > `sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' ~/ocp-install/manifests/cluster-scheduler-02-config.yml`.
    > Make any other custom changes you like to the core Kubernetes manifest files.
 
@@ -514,7 +514,7 @@
    ```yaml
    storage:
      pvc:
-       claim: # leave the claim bnsth.demok
+       claim: # leave the claim blank
    ```
 
 1. Confirm the 'image-registry-storage' pvc has been created and is currently in a 'Pending' state
@@ -579,19 +579,30 @@
 
 ## Troubleshooting
 
+1. DHCP troubleshooting
+   ```
+   cat /var/log/messages | grep dhcp
+   journalctl -u dhcpd
+   ```
+
+1. Apache troubleshooting
+   ```
+   cat /var/log/httpd/access_log | grep -iE '*.ign'
+   ```
+
 1. You can collect logs from all cluster hosts by running the following command from the 'ocp-svc' host:
 
    ```bash
    ./openshift-install gather bootstrap --dir ocp-install --bootstrap=192.168.44.2 --master=192.168.44.11 --master=192.168.44.12 --master=192.168.44.13
    ```
 
-1. Modify the role of the Control Pnsth.demoe Nodes
+1. Modify the role of the Control Pane Nodes
 
-   If you would like to schedule workloads on the Control Pnsth.demoe nodes apply the 'worker' role by changing the value of 'mastersSchedulable' to true.
+   If you would like to schedule workloads on the Control Pane nodes apply the 'worker' role by changing the value of 'mastersSchedulable' to true.
 
-   If you do not want to schedule workloads on the Control Pnsth.demoe nodes remove the 'worker' role by changing the value of 'mastersSchedulable' to false.
+   If you do not want to schedule workloads on the Control Pane nodes remove the 'worker' role by changing the value of 'mastersSchedulable' to false.
 
-   > Remember depending on where you host your workloads you will have to update HAProxy to include or exclude the control pnsth.demoe nodes from the ingress backends.
+   > Remember depending on where you host your workloads you will have to update HAProxy to include or exclude the Control Pane nodes from the ingress backends.
 
    ```bash
    oc edit schedulers.config.openshift.io cluster
