@@ -1,5 +1,5 @@
 $TTL    604800
-@       IN      SOA     ocp-svc.ocp.nsth.demo. contact.ocp.nsth.demo (
+@       IN      SOA     bastion.prod-01.ocp.nsth.demo. contact.ocp.nsth.demo (
                   1     ; Serial
              604800     ; Refresh
               86400     ; Retry
@@ -7,17 +7,17 @@ $TTL    604800
              604800     ; Minimum
 )
 
-  IN      NS      ocp-svc.ocp.nsth.demo.
+  IN      NS      bastion.prod-01.ocp.nsth.demo.
 
-1      IN    PTR    ocp-svc.ocp.nsth.demo.
-1      IN    PTR    api.lab.ocp.nsth.demo.
-1      IN    PTR    api-int.lab.ocp.nsth.demo.
-;
-2    IN    PTR    ocp-bootstrap.lab.ocp.nsth.demo.
-;
-11    IN    PTR    ocp-cp-1.lab.ocp.nsth.demo.
-12    IN    PTR    ocp-cp-2.lab.ocp.nsth.demo.
-13    IN    PTR    ocp-cp-3.lab.ocp.nsth.demo.
-;
-21    IN    PTR    ocp-w-1.lab.ocp.nsth.demo.
-22    IN    PTR    ocp-w-2.lab.ocp.nsth.demo.
+1      IN    PTR    bastion.prod-01.ocp.nsth.demo.
+1      IN    PTR    api.prod-01.ocp.nsth.demo.
+1      IN    PTR    api-int.prod-01.ocp.nsth.demo.
+
+2    IN    PTR    bootstrap.prod-01.ocp.nsth.demo.
+
+11    IN    PTR    master-01.prod-01.ocp.nsth.demo.
+12    IN    PTR    master-02.prod-01.ocp.nsth.demo.
+13    IN    PTR    master-03.prod-01.ocp.nsth.demo.
+
+21    IN    PTR    worker-01.prod-01.ocp.nsth.demo.
+22    IN    PTR    worker-02.prod-01.ocp.nsth.demo.

@@ -4,12 +4,12 @@ compute:
   - hyperthreading: Enabled
     name: worker
     replicas: 0 # Must be set to 0 for User Provisioned Installation as worker nodes will be manually deployed.
-controlPnsth.demoe:
+controlPane:
   hyperthreading: Enabled
   name: master
   replicas: 3
 metadata:
-  name: lab # Cluster name
+  name: prod-01 # Cluster name
 networking:
   clusterNetwork:
     - cidr: 10.128.0.0/14
