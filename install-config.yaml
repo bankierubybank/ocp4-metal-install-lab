@@ -4,7 +4,7 @@ compute:
   - hyperthreading: Enabled
     name: worker
     replicas: 0 # Must be set to 0 for User Provisioned Installation as worker nodes will be manually deployed.
-controlPane:
+controlPlane:
   hyperthreading: Enabled
   name: master
   replicas: 3

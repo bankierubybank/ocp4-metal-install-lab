@@ -85,10 +85,10 @@
    tar xvf openshift-install-linux.tar.gz
    ```
 
-1. Download [config files](https://github.com/bankierubybank/ocp4-metal-install-lab-lab) for each of the services
+1. Download [config files](https://github.com/bankierubybank/ocp4-metal-install-lab) for each of the services
 
    ```bash
-   git clone https://github.com/bankierubybank/ocp4-metal-install-lab-lab
+   git clone https://github.com/bankierubybank/ocp4-metal-install-lab
    ```
 
 1. OPTIONAL: Create a file '~/.vimrc' and paste the following (this helps with editing in vim, particularly yaml files):
@@ -204,7 +204,7 @@
 
    ```bash
    dig ocp.nsth.demo
-   # The following should return the answer ocp-bootstrap.lab.ocp.nsth.demo from the local server
+   # The following should return the answer ocp-bootstrap.prod-01.ocp.nsth.demo from the local server
    dig -x 192.168.44.2
    ```
 
@@ -413,6 +413,8 @@
 
 1. Power on the ocp-bootstrap host and ocp-cp-\# hosts and select 'Tab' to enter boot configuration. Enter the following configuration:
 
+Ref: https://docs.openshift.com/container-platform/4.11/installing/installing_bare_metal/installing-bare-metal.html#installation-user-infra-machines-advanced_installing-bare-metal at Table 13. coreos.inst boot options
+
    ```bash
    # Bootstrap Node - ocp-bootstrap
    coreos.inst.install_dev=sda coreos.inst.image_url=http://192.168.44.1:8080/ocp4/rhcos coreos.inst.insecure=yes coreos.inst.ignition_url=http://192.168.44.1:8080/ocp4/bootstrap.ign
@@ -562,17 +564,17 @@
 1. Append the following to your local workstations `/etc/hosts` file:
 
    > From your local workstation
-   > If you do not want to add an entry for each new service made available on OpenShift you can configure the ocp-svc DNS server to serve externally and create a wildcard entry for \*.apps.lab.ocp.nsth.demo
+   > If you do not want to add an entry for each new service made available on OpenShift you can configure the ocp-svc DNS server to serve externally and create a wildcard entry for \*.apps.prod-01.ocp.nsth.demo
 
    ```bash
    # Open the hosts file
    sudo vi /etc/hosts
 
    # Append the following entries:
-   192.168.0.96 ocp-svc api.lab.ocp.nsth.demo console-openshift-console.apps.lab.ocp.nsth.demo oauth-openshift.apps.lab.ocp.nsth.demo downloads-openshift-console.apps.lab.ocp.nsth.demo alertmanager-main-openshift-monitoring.apps.lab.ocp.nsth.demo grafana-openshift-monitoring.apps.lab.ocp.nsth.demo prometheus-k8s-openshift-monitoring.apps.lab.ocp.nsth.demo thanos-querier-openshift-monitoring.apps.lab.ocp.nsth.demo
+   172.16.68.201 bastion api.prod-01.ocp.nsth.demo console-openshift-console.apps.prod-01.ocp.nsth.demo oauth-openshift.apps.prod-01.ocp.nsth.demo downloads-openshift-console.apps.prod-01.ocp.nsth.demo alertmanager-main-openshift-monitoring.apps.prod-01.ocp.nsth.demo grafana-openshift-monitoring.apps.prod-01.ocp.nsth.demo prometheus-k8s-openshift-monitoring.apps.prod-01.ocp.nsth.demo thanos-querier-openshift-monitoring.apps.prod-01.ocp.nsth.demo
    ```
 
-1. Navigate to the [OpenShift Console URL](https://console-openshift-console.apps.lab.ocp.nsth.demo) and log in as the 'admin' user
+1. Navigate to the [OpenShift Console URL](https://console-openshift-console.apps.prod-01.ocp.nsth.demo) and log in as the 'admin' user
 
    > You will get self signed certificate warnings that you can ignore
    > If you need to login as kubeadmin and need to the password again you can retrieve it with: `cat ~/ocp-install/auth/kubeadmin-password`
