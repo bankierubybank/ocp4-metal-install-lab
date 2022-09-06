@@ -116,9 +116,9 @@
    export KUBE_EDITOR="vim"
    ```
 
-1. Set a Static IP for OCP network interface `nmtui-edit ens224` or edit `/etc/sysconfig/network-scripts/ifcfg-ens444`
+1. Set a Static IP for OCP network interface `nmtui-edit ens224` or edit `/etc/sysconfig/network-scripts/ifcfg-ens224`
 
-   - **Address**: 192.168.44.1
+   - **Address**: 192.168.50.1
    - **DNS Server**: 127.0.0.1
    - **Search domain**: ocp.nsth.demo
    - Never use this network for default route
@@ -214,7 +214,7 @@
    ```bash
    dig ocp.nsth.demo
    # The following should return the answer ocp-bootstrap.uat.ocp.nsth.demo from the local server
-   dig -x 192.168.44.2
+   dig -x 192.168.50.2
    ```
 
 1. Configure DHCP
@@ -321,7 +321,7 @@
    Export the Share
 
    ```bash
-   echo "/shares/registry 192.168.44.0/24(rw,sync,root_squash,no_subtree_check,no_wdelay)" > /etc/exports
+   echo "/shares/registry 192.168.50.0/24(rw,sync,root_squash,no_subtree_check,no_wdelay)" > /etc/exports
    exportfs -rv
    ```
 
@@ -426,19 +426,19 @@ Ref: https://docs.openshift.com/container-platform/4.11/installing/installing_ba
 
    ```bash
    # Bootstrap Node - ocp-bootstrap
-   coreos.inst.install_dev=sda coreos.inst.image_url=http://192.168.44.1:8080/ocp4/rhcos coreos.inst.insecure=yes coreos.inst.ignition_url=http://192.168.44.1:8080/ocp4/bootstrap.ign
+   coreos.inst.install_dev=sda coreos.inst.image_url=http://192.168.50.1:8080/ocp4/rhcos coreos.inst.insecure=yes coreos.inst.ignition_url=http://192.168.50.1:8080/ocp4/bootstrap.ign
    ```
 
    ```bash
    # Each of the Control Pane Nodes - ocp-cp-\#
-   coreos.inst.install_dev=sda coreos.inst.image_url=http://192.168.44.1:8080/ocp4/rhcos coreos.inst.insecure=yes coreos.inst.ignition_url=http://192.168.44.1:8080/ocp4/master.ign
+   coreos.inst.install_dev=sda coreos.inst.image_url=http://192.168.50.1:8080/ocp4/rhcos coreos.inst.insecure=yes coreos.inst.ignition_url=http://192.168.50.1:8080/ocp4/master.ign
    ```
 
 1. Power on the ocp-w-\# hosts and select 'Tab' to enter boot configuration. Enter the following configuration:
 
    ```bash
    # Each of the Worker Nodes - ocp-w-\#
-   coreos.inst.install_dev=sda coreos.inst.image_url=http://192.168.44.1:8080/ocp4/rhcos coreos.inst.insecure=yes coreos.inst.ignition_url=http://192.168.44.1:8080/ocp4/worker.ign
+   coreos.inst.install_dev=sda coreos.inst.image_url=http://192.168.50.1:8080/ocp4/rhcos coreos.inst.insecure=yes coreos.inst.ignition_url=http://192.168.50.1:8080/ocp4/worker.ign
    ```
 
 ## Monitor the Bootstrap Process
@@ -604,7 +604,7 @@ Ref: https://docs.openshift.com/container-platform/4.11/installing/installing_ba
 1. You can collect logs from all cluster hosts by running the following command from the 'ocp-svc' host:
 
    ```bash
-   ./openshift-install gather bootstrap --dir ocp-install --bootstrap=192.168.44.2 --master=192.168.44.11 --master=192.168.44.12 --master=192.168.44.13
+   ./openshift-install gather bootstrap --dir ocp-install --bootstrap=192.168.50.2 --master=192.168.50.11 --master=192.168.50.12 --master=192.168.50.13
    ```
 
 1. Modify the role of the Control Pane Nodes

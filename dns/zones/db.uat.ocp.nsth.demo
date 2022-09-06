@@ -8,35 +8,35 @@ $TTL    604800
 )
         IN      NS      bastion
 
-bastion.uat.ocp.nsth.demo.          IN      A       192.168.44.1
+bastion.uat.ocp.nsth.demo.          IN      A       192.168.50.1
 
 ; Temp Bootstrap Node
-bootstrap.uat.ocp.nsth.demo.        IN      A      192.168.44.2
+bootstrap.uat.ocp.nsth.demo.        IN      A      192.168.50.2
 
 ; Control Pnsth.demoe Nodes
-master-01.uat.ocp.nsth.demo.         IN      A      192.168.44.11
-master-02.uat.ocp.nsth.demo.         IN      A      192.168.44.12
-master-03.uat.ocp.nsth.demo.         IN      A      192.168.44.13
+master-01.uat.ocp.nsth.demo.         IN      A      192.168.50.11
+master-02.uat.ocp.nsth.demo.         IN      A      192.168.50.12
+master-03.uat.ocp.nsth.demo.         IN      A      192.168.50.13
 
 ; Worker Nodes
-worker-01.uat.ocp.nsth.demo.        IN      A      192.168.44.21
-worker-02.uat.ocp.nsth.demo.        IN      A      192.168.44.22
-worker-03.uat.ocp.nsth.demo.        IN      A      192.168.44.23
+worker-01.uat.ocp.nsth.demo.        IN      A      192.168.50.21
+worker-02.uat.ocp.nsth.demo.        IN      A      192.168.50.22
+worker-03.uat.ocp.nsth.demo.        IN      A      192.168.50.23
 
 ; OpenShift Internal - Load balancer
-api.uat.ocp.nsth.demo.        IN    A    192.168.44.1
-api-int.uat.ocp.nsth.demo.    IN    A    192.168.44.1
-*.apps.uat.ocp.nsth.demo.     IN    A    192.168.44.1
+api.uat.ocp.nsth.demo.        IN    A    192.168.50.1
+api-int.uat.ocp.nsth.demo.    IN    A    192.168.50.1
+*.apps.uat.ocp.nsth.demo.     IN    A    192.168.50.1
 
 ; ETCD Cluster
-etcd-0.uat.ocp.nsth.demo.    IN    A     192.168.44.11
-etcd-1.uat.ocp.nsth.demo.    IN    A     192.168.44.12
-etcd-2.uat.ocp.nsth.demo.    IN    A     192.168.44.13
+etcd-0.uat.ocp.nsth.demo.    IN    A     192.168.50.11
+etcd-1.uat.ocp.nsth.demo.    IN    A     192.168.50.12
+etcd-2.uat.ocp.nsth.demo.    IN    A     192.168.50.13
 
 ; OpenShift Internal SRV records (cluster name = uat)
 _etcd-server-ssl._tcp.uat.ocp.nsth.demo.    86400     IN    SRV     0    10    2380    etcd-0.uat
 _etcd-server-ssl._tcp.uat.ocp.nsth.demo.    86400     IN    SRV     0    10    2380    etcd-1.uat
 _etcd-server-ssl._tcp.uat.ocp.nsth.demo.    86400     IN    SRV     0    10    2380    etcd-2.uat
 
-oauth-openshift.apps.uat.ocp.nsth.demo.     IN     A     192.168.44.1
-console-openshift-console.apps.uat.ocp.nsth.demo.     IN     A     192.168.44.1
+oauth-openshift.apps.uat.ocp.nsth.demo.     IN     A     192.168.50.1
+console-openshift-console.apps.uat.ocp.nsth.demo.     IN     A     192.168.50.1
