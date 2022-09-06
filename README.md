@@ -2,7 +2,11 @@
 
 ## Architecture Diagram
 
-![Architecture Diagram](./diagram/Architecture.png)
+###### Information
+- Cluster Name: UAT
+- Base Domain: ocp.nsth.demo
+
+![Architecture Diagram](./diagram/uat.ocp.nsth.demo.png)
 
 ## Download Software
 
@@ -16,12 +20,17 @@
 
    - Openshift Installer for Linux
    - Pull secret
-   - Command Line Interface for Linux and your workstations OS
+   - Command Line Interface for Linux and your workstations OS (OC)
    - Red Hat Enterprise Linux CoreOS (RHCOS)
      - rhcos-X.X.X-x86_64-metal.x86_64.raw.gz
      - rhcos-X.X.X-x86_64-installer.x86_64.iso (or rhcos-X.X.X-x86_64-live.x86_64.iso for newer versions)
 
 1. Or from here [RHOCP Installer & Client](https://mirror.openshift.com/pub/openshift-v4/clients/ocp/) [RHCOS](https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/)
+
+###### Filename format (Replace x.xx.x to version you want to install)
+   - OpenShift Installer: openshift-install-linux-x.xx.x.tar.gz
+   - OpenShift Client: openshift-client-linux-x.xx.x.tar.gz
+   - RHCOS: rhcos-x.xx.x-x86_64-metal.x86_64.raw.gz
 
 ## Prepare the 'Bare Metal' environment
 
@@ -31,10 +40,10 @@
 ### OCP VMs
 | VM | CPU | Memory | Disk | Image | NICs |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| ocp-svc | 4 | 8GB | 200GB | centos_8.iso | 2 NIC - Attach to Internal network and OCP Port Group |
-| ocp-cp-# | 4 | 8GB | 200GB | rhcos-X.X.X-x86_64-installer.x86_64.iso | 1 NIC - Attach to OCP Port Group |
-| ocp-w-# | 4 | 8GB | 200GB | rhcos-X.X.X-x86_64-installer.x86_64.iso | 1 NIC - Attach to OCP Port Group |
-| ocp-bootstrap | 8 | 16GB | 200GB | rhcos-X.X.X-x86_64-installer.x86_64.iso | 1 NIC - Attach to OCP Port Group |
+| bastion | 4 | 8GB | 200GB | centos_8.iso | 2 NIC - Attach to Internal network and OCP Port Group |
+| master-# | 4 | 12GB | 200GB | rhcos-X.X.X-x86_64-installer.x86_64.iso | 1 NIC - Attach to OCP Port Group |
+| worker-# | 4 | 8GB | 200GB | rhcos-X.X.X-x86_64-installer.x86_64.iso | 1 NIC - Attach to OCP Port Group |
+| bootstrap | 8 | 16GB | 200GB | rhcos-X.X.X-x86_64-installer.x86_64.iso | 1 NIC - Attach to OCP Port Group |
 
 ## Configure Environmental Services
 
@@ -204,7 +213,7 @@
 
    ```bash
    dig ocp.nsth.demo
-   # The following should return the answer ocp-bootstrap.prod-01.ocp.nsth.demo from the local server
+   # The following should return the answer ocp-bootstrap.uat.ocp.nsth.demo from the local server
    dig -x 192.168.44.2
    ```
 
@@ -564,17 +573,17 @@ Ref: https://docs.openshift.com/container-platform/4.11/installing/installing_ba
 1. Append the following to your local workstations `/etc/hosts` file:
 
    > From your local workstation
-   > If you do not want to add an entry for each new service made available on OpenShift you can configure the ocp-svc DNS server to serve externally and create a wildcard entry for \*.apps.prod-01.ocp.nsth.demo
+   > If you do not want to add an entry for each new service made available on OpenShift you can configure the ocp-svc DNS server to serve externally and create a wildcard entry for \*.apps.uat.ocp.nsth.demo
 
    ```bash
    # Open the hosts file
    sudo vi /etc/hosts
 
    # Append the following entries:
-   172.16.68.201 bastion api.prod-01.ocp.nsth.demo console-openshift-console.apps.prod-01.ocp.nsth.demo oauth-openshift.apps.prod-01.ocp.nsth.demo downloads-openshift-console.apps.prod-01.ocp.nsth.demo alertmanager-main-openshift-monitoring.apps.prod-01.ocp.nsth.demo grafana-openshift-monitoring.apps.prod-01.ocp.nsth.demo prometheus-k8s-openshift-monitoring.apps.prod-01.ocp.nsth.demo thanos-querier-openshift-monitoring.apps.prod-01.ocp.nsth.demo
+   172.16.68.201 bastion api.uat.ocp.nsth.demo console-openshift-console.apps.uat.ocp.nsth.demo oauth-openshift.apps.uat.ocp.nsth.demo downloads-openshift-console.apps.uat.ocp.nsth.demo alertmanager-main-openshift-monitoring.apps.uat.ocp.nsth.demo grafana-openshift-monitoring.apps.uat.ocp.nsth.demo prometheus-k8s-openshift-monitoring.apps.uat.ocp.nsth.demo thanos-querier-openshift-monitoring.apps.uat.ocp.nsth.demo
    ```
 
-1. Navigate to the [OpenShift Console URL](https://console-openshift-console.apps.prod-01.ocp.nsth.demo) and log in as the 'admin' user
+1. Navigate to the [OpenShift Console URL](https://console-openshift-console.apps.uat.ocp.nsth.demo) and log in as the 'admin' user
 
    > You will get self signed certificate warnings that you can ignore
    > If you need to login as kubeadmin and need to the password again you can retrieve it with: `cat ~/ocp-install/auth/kubeadmin-password`
@@ -609,3 +618,8 @@ Ref: https://docs.openshift.com/container-platform/4.11/installing/installing_ba
    ```bash
    oc edit schedulers.config.openshift.io cluster
    ```
+
+   ## Reference
+
+   1. https://docs.openshift.com/container-platform/4.11/installing/installing_bare_metal/installing-bare-metal.html#installation-requirements-user-infra_installing-bare-metal
+   1. https://access.redhat.com/documentation/en-us/openshift_container_platform/4.7/html/support/troubleshooting#installation-bootstrap-gather_troubleshooting-installations
