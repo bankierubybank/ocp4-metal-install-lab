@@ -1,0 +1,41 @@
+$TTL    604800
+@       IN      SOA     bastion.ocp.nsth.demo. contact.ocp.nsth.demo (
+                  1     ; Serial
+             604800     ; Refresh
+              86400     ; Retry
+            24192     ; Expire
+             604800     ; Minimum
+)
+        IN      NS      bastion
+
+bastion.prod-01.ocp.nsth.demo.          IN      A       192.168.44.1
+
+bootstrap.prod-01.ocp.nsth.demo.        IN      A       192.168.44.2
+
+; Control Plane Nodes
+master-01.prod-01.ocp.nsth.demo.         IN      A      192.168.44.11
+master-02.prod-01.ocp.nsth.demo.         IN      A      192.168.44.12
+master-03.prod-01.ocp.nsth.demo.         IN      A      192.168.44.13
+
+; Worker Nodes
+worker-01.prod-01.ocp.nsth.demo.        IN      A	192.168.44.21
+worker-02.prod-01.ocp.nsth.demo.        IN      A	192.168.44.22
+worker-03.prod-01.ocp.nsth.demo.        IN      A	192.168.44.23
+
+; OpenShift Internal - Load balancer
+api.prod-01.ocp.nsth.demo.        IN    A    192.168.44.1
+api-int.prod-01.ocp.nsth.demo.    IN    A    192.168.44.1
+*.apps.prod-01.ocp.nsth.demo.     IN    A    192.168.44.1
+
+; ETCD Cluster
+etcd-0.prod-01.ocp.nsth.demo.    IN    A     192.168.44.11
+etcd-1.prod-01.ocp.nsth.demo.    IN    A     192.168.44.12
+etcd-2.prod-01.ocp.nsth.demo.    IN    A     192.168.44.13
+
+; OpenShift Internal SRV records (cluster name = prod-01)
+_etcd-server-ssl._tcp.prod-01.ocp.nsth.demo.    86400     IN    SRV     0    10    2380    etcd-0.prod-01
+_etcd-server-ssl._tcp.prod-01.ocp.nsth.demo.    86400     IN    SRV     0    10    2380    etcd-1.prod-01
+_etcd-server-ssl._tcp.prod-01.ocp.nsth.demo.    86400     IN    SRV     0    10    2380    etcd-2.prod-01
+
+oauth-openshift.apps.prod-01.ocp.nsth.demo.     IN     A     192.168.44.1
+console-openshift-console.apps.prod-01.ocp.nsth.demo.     IN     A     192.168.44.1
